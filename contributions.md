@@ -1,7 +1,9 @@
 
 ## create branchs
-feature/HU-01-register
-feature/HU-02-login
+feature/auth/#ISSUE-001/HU-01-register
+
+## sub issues para solucionar errores
+fixbug/
 
 
 ## commits
@@ -21,3 +23,7 @@ style → formato (no lógica)
 perf → mejoras de rendimiento
 test → pruebas
 wip → trabajo en progreso (no recomendado en main)
+
+
+## pruebas unitarias
+junit para tareas
