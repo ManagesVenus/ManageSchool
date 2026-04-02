@@ -1,0 +1,13 @@
+[ {
+  "id" : "001",
+  "nombre" : "Física",
+  "valor" : 100
+}, {
+  "id" : "002",
+  "nombre" : "Química",
+  "valor" : 200
+}, {
+  "id" : "003",
+  "nombre" : "Historia",
+  "valor" : 300
+} ]
