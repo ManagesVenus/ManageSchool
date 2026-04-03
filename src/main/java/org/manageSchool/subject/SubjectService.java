@@ -30,4 +30,22 @@ public class SubjectService {  // Clase que contiene la lógica de negocio para 
             }
         }
     }
+
+    // ============ ISSUE-013: Crear materia personalizada ============
+    public Subject create(String nombre) {  // Metodo para crear una nueva materia personalizada
+        if (nombre == null || nombre.trim().isEmpty()) {  // Valida que el nombre no sea nulo ni vacio
+            throw new RuntimeException("El nombre de la materia no puede estar vacio.");  // Lanza error si esta vacio
+        }
+        if (repo.existsByNombre(nombre)) {  // Verifica si ya existe una materia con ese nombre
+            throw new RuntimeException("Ya existe una materia con ese nombre.");  // Lanza error si ya existe
+        }
+        Subject subject = new Subject(  // Crea un nuevo objeto Subject
+                UUID.randomUUID().toString(),  // Genera un ID unico universal
+                nombre,  // Asigna el nombre ingresado por el usuario
+                false,  // predeterminada = false (es una materia creada por el Admin)
+                true  // activa = true (esta habilitada para usar)
+        );
+        repo.save(subject);  // Guarda la materia en el archivo subjects.json
+        return subject;  // Devuelve la materia creada
+    }
 }
