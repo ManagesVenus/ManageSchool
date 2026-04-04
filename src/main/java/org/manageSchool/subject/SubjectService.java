@@ -48,4 +48,43 @@ public class SubjectService {  // Clase que contiene la lógica de negocio para 
         repo.save(subject);  // Guarda la materia en el archivo subjects.json
         return subject;  // Devuelve la materia creada
     }
+
+    // ============ ISSUE-014: Listar materias ============
+    public List<Subject> listAll() {  // Metodo que devuelve todas las materias
+        return repo.findAll();  // Delega en el repositorio
+    }
+
+    // ============ ISSUE-014: Editar materia ============
+    public Subject update(String id, String nuevoNombre) {  // Metodo para editar una materia
+        Subject subject = repo.findById(id)  // Busca la materia por ID
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada."));  // Error si no existe
+
+        if (subject.isPredeterminada()) {  // Verifica si es predeterminada
+            throw new RuntimeException("Las materias predeterminadas no pueden editarse.");  // No permite editar
+        }
+
+        if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) {  // Valida nombre no vacio
+            throw new RuntimeException("El nombre no puede estar vacio.");  // Error si esta vacio
+        }
+
+        if (repo.existsByNombre(nuevoNombre)) {  // Verifica si el nombre ya existe
+            throw new RuntimeException("Ya existe una materia con ese nombre.");  // Error si existe duplicado
+        }
+
+        subject.setNombre(nuevoNombre);  // Asigna el nuevo nombre
+        repo.update(subject);  // Guarda los cambios
+        return subject;  // Devuelve la materia actualizada
+    }
+
+    // ============ ISSUE-014: Eliminar materia ============
+    public void delete(String id) {  // Metodo para eliminar una materia
+        Subject subject = repo.findById(id)  // Busca la materia por ID
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada."));  // Error si no existe
+
+        if (subject.isPredeterminada()) {  // Verifica si es predeterminada
+            throw new RuntimeException("Las materias predeterminadas no pueden eliminarse en v1.0.");  // No permite eliminar
+        }
+
+        repo.deleteById(id);  // Elimina la materia
+    }
 }

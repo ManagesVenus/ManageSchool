@@ -82,4 +82,79 @@ class SubjectServiceTest {  // Clase que contiene todas las pruebas de SubjectSe
         });
         assertEquals("Ya existe una materia con ese nombre.", exception.getMessage());  // Verifica el mensaje de error
     }
+
+    // ============ TESTS PARA ISSUE-014 ============
+
+    @Test
+    void listAll_devuelveTodasLasMaterias() {  // Prueba que listAll devuelve todas las materias
+        assertEquals(5, subjectService.listAll().size());  // Verifica que hay 5 materias
+    }
+
+    @Test
+    void update_editaMateriaPersonalizadaExitosamente() {  // Prueba que edita materia personalizada
+        Subject creada = subjectService.create("Fisica");  // Crea una materia personalizada
+        Subject actualizada = subjectService.update(creada.getId(), "Fisica Moderna");  // La edita
+
+        assertEquals("Fisica Moderna", actualizada.getNombre());  // Verifica el nuevo nombre
+        assertTrue(repo.existsByNombre("Fisica Moderna"));  // Verifica que existe con el nuevo nombre
+        assertFalse(repo.existsByNombre("Fisica"));  // Verifica que ya no existe el viejo nombre
+    }
+
+    @Test
+    void update_lanzaErrorSiEditaMateriaPredeterminada() {  // Prueba que no permite editar predeterminada
+        Subject predeterminada = repo.findAll().stream()
+                .filter(Subject::isPredeterminada)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No hay materias predeterminadas"));  // Si no hay, error
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            subjectService.update(predeterminada.getId(), "Nuevo Nombre");
+        });
+        assertEquals("Las materias predeterminadas no pueden editarse.", exception.getMessage());
+    }
+
+    @Test
+    void update_lanzaErrorSiNombreDuplicado() {  // Prueba que no permite editar con nombre duplicado
+        subjectService.create("Quimica");  // Crea una materia
+        subjectService.create("Biologia");  // Crea otra materia
+
+        Subject quimica = repo.findByNombre("Quimica")
+                .orElseThrow(() -> new RuntimeException("Materia Quimica no encontrada"));  // Si no existe, error
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            subjectService.update(quimica.getId(), "Biologia");  // Intenta cambiar a nombre que ya existe
+        });
+        assertEquals("Ya existe una materia con ese nombre.", exception.getMessage());
+    }
+
+    @Test
+    void delete_eliminaMateriaPersonalizadaExitosamente() {  // Prueba que elimina materia personalizada
+        Subject creada = subjectService.create("Historia");  // Crea una materia
+        assertEquals(6, repo.findAll().size());  // Verifica que hay 6 materias (5 + 1 nueva)
+
+        subjectService.delete(creada.getId());  // La elimina
+        assertEquals(5, repo.findAll().size());  // Verifica que vuelven a ser 5
+        assertFalse(repo.existsByNombre("Historia"));  // Verifica que ya no existe
+    }
+
+    @Test
+    void delete_lanzaErrorSiEliminaMateriaPredeterminada() {  // Prueba que no permite eliminar predeterminada
+        Subject predeterminada = repo.findAll().stream()
+                .filter(Subject::isPredeterminada)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No hay materias predeterminadas"));  // Si no hay, error
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            subjectService.delete(predeterminada.getId());
+        });
+        assertEquals("Las materias predeterminadas no pueden eliminarse en v1.0.", exception.getMessage());
+    }
+
+    @Test
+    void delete_lanzaErrorSiMateriaNoExiste() {  // Prueba que no permite eliminar materia inexistente
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            subjectService.delete("id-inexistente");
+        });
+        assertEquals("Materia no encontrada.", exception.getMessage());
+    }
 }
