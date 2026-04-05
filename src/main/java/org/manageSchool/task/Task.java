@@ -59,10 +59,6 @@ public class Task {
     }
 
     /**
-     * Convierte un LocalDate a String en formato "yyyy-MM-dd".
-     * Utilidad para cuando el Controller recibe una fecha del usuario
-     * y necesita convertirla para pasarla al Service.
-     *
      * @param date Fecha (puede ser null si el campo es opcional)
      * @return String "yyyy-MM-dd" o null si la fecha es null
      */
