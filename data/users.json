@@ -1,0 +1,9 @@
+[ {
+  "id" : "48b7315c-b6a9-421c-b017-53b6847158bc",
+  "nombre" : "Administrador",
+  "correo" : "admin@colegio.edu.co",
+  "contrasena" : "$2a$10$qLFd4JdMBKtSqGrzuE839./a.LPUrut6BpTmuGVM9/U4VemoQKbVK",
+  "rol" : "ADMIN",
+  "activo" : true,
+  "fechaCreacion" : "2026-04-05"
+} ]

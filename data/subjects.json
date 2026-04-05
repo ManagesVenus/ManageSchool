@@ -1,0 +1,26 @@
+[ {
+  "id" : "b1247c32-49d6-4edc-9d19-d8f584332ee4",
+  "nombre" : "Matemáticas",
+  "predeterminada" : true,
+  "activa" : true
+}, {
+  "id" : "ec68573e-ca46-4f44-b7df-6de52b4d444b",
+  "nombre" : "Español",
+  "predeterminada" : true,
+  "activa" : true
+}, {
+  "id" : "ff707ef9-0bbc-45bb-a96f-3f6ac52ca237",
+  "nombre" : "Ciencias Naturales",
+  "predeterminada" : true,
+  "activa" : true
+}, {
+  "id" : "a41e9347-5864-4847-b111-185766889939",
+  "nombre" : "Ciencias Sociales",
+  "predeterminada" : true,
+  "activa" : true
+}, {
+  "id" : "766fac60-990e-4468-93c0-be152d90deb6",
+  "nombre" : "Inglés",
+  "predeterminada" : true,
+  "activa" : true
+} ]
