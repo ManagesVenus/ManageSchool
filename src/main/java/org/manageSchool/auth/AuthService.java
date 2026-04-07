@@ -6,7 +6,11 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthService {
 
-    private final AuthRepository repo = new AuthRepository();
+    private final AuthRepository repo;
+
+    public AuthService(AuthRepository repo) {
+        this.repo = repo;
+    }
 
     // Crea el admin por defecto si no existe
     public void seedDefaultAdmin() {
@@ -30,6 +34,7 @@ public class AuthService {
             throw new AppException("Esta cuenta está desactivada.");
         }
 
+        System.out.println("Bienvenido "+user.getNombre()+"!");
         return user;
     }
 

@@ -1,12 +1,31 @@
 package org.manageSchool.auth;
 
 import org.manageSchool.shared.AppException;
-
 import java.util.Scanner;
 
 public class AuthController {
 
-    private final AuthService service = new AuthService();
+    private final AuthService service = new AuthService(new AuthRepository());
+
+    public User mostrarMenuPrincipal(Scanner scanner) {
+        while (true) {
+            System.out.println("\n===== ManageSchool CLI v1.0 =====");
+            System.out.println("1. Iniciar sesión");
+            System.out.println("2. Salir");
+            System.out.print("Seleccione una opción: ");
+
+            String opcion = scanner.nextLine().trim();
+
+            switch (opcion) {
+                case "1" -> { return mostrarLogin(scanner); }
+                case "2" -> {
+                    System.out.println("¡Hasta luego!");
+                    return null;
+                }
+                default -> System.out.println("Opción inválida. Intente de nuevo.");
+            }
+        }
+    }
 
     // Muestra el formulario de login. Repite hasta que el usuario ingrese credenciales válidas.
     public User mostrarLogin(Scanner scanner) {

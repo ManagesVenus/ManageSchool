@@ -1,7 +1,9 @@
 package org.manageSchool;
 
 import org.manageSchool.auth.AuthController;
+import org.manageSchool.auth.AuthRepository;
 import org.manageSchool.auth.AuthService;
+import org.manageSchool.auth.User;
 import org.manageSchool.subject.SubjectService;
 
 import java.util.Scanner;
@@ -15,11 +17,16 @@ public class Main {
         System.out.println("Sistema inicializado. Materias predeterminadas cargadas.");
 
         // ISSUE-003: admin por defecto + login
-        AuthService authService = new AuthService();
+        AuthService authService = new AuthService(new AuthRepository());
         authService.seedDefaultAdmin();
 
         Scanner scanner = new Scanner(System.in);
         AuthController authController = new AuthController();
-        authController.mostrarLogin(scanner);
+        User usuario = authController.mostrarMenuPrincipal(scanner);
+        if (usuario == null) {
+            System.out.println("Cerrando el sistema...");
+            scanner.close();
+            return;
+        }
     }
 }
