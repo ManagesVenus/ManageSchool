@@ -100,4 +100,29 @@ public class GradeService {  // Clase que contiene la logica de negocio para not
         }
         return repo.findByStudentId(estudianteId);  // Delega en el repositorio
     }
+
+    // ============ ISSUE-020: Calcular promedio general del estudiante ============
+    public OptionalDouble calcularPromedioGeneral(String estudianteId, List<String> materiasIds) {  // Calcula el promedio general del estudiante
+        if (estudianteId == null || estudianteId.trim().isEmpty()) {  // Valida que el ID no este vacio
+            throw new RuntimeException("El ID del estudiante no puede estar vacio.");  // Error si esta vacio
+        }
+
+        double sumaPromedios = 0.0;  // Variable para acumular la suma de promedios
+        int materiasConNotas = 0;  // Contador de materias que tienen al menos una nota
+
+        for (String materiaId : materiasIds) {  // Recorre cada materia
+            OptionalDouble promedio = calcularPromedioPorMateria(estudianteId, materiaId);  // Calcula promedio por materia
+            if (promedio.isPresent()) {  // Si la materia tiene al menos una nota
+                sumaPromedios += promedio.getAsDouble();  // Suma el promedio
+                materiasConNotas++;  // Incrementa el contador
+            }
+            // Si la materia no tiene notas, se ignora (no suma ni cuenta)
+        }
+
+        if (materiasConNotas == 0) {  // Si ninguna materia tiene notas
+            return OptionalDouble.empty();  // Retorna vacio
+        }
+
+        return OptionalDouble.of(sumaPromedios / materiasConNotas);  // Retorna el promedio general
+    }
 }

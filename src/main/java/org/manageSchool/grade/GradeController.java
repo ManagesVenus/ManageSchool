@@ -2,6 +2,7 @@ package org.manageSchool.grade;  // Define el paquete donde esta esta clase
 
 import java.util.Scanner;  // Importa Scanner para leer entrada del usuario
 import java.util.List;  // Para mostrarMenuListarPorTarea
+import java.util.OptionalDouble;
 
 public class GradeController {  // Clase que maneja la interaccion con el usuario para notas
     private final GradeService service = new GradeService();  // Instancia del servicio
@@ -143,6 +144,51 @@ public class GradeController {  // Clase que maneja la interaccion con el usuari
                         g.getTareaId().substring(0, 8) : g.getTareaId();  // Acorta ID tarea
                 System.out.printf("%-10s | %-8s | %-4.1f | %s\n",  // Imprime fila formateada
                         materiaId, tareaId, g.getValor(), g.getFechaRegistro());
+            }
+        } catch (Exception e) {  // Captura cualquier error
+            System.out.println("Error: " + e.getMessage());  // Muestra el mensaje de error
+        }
+    }
+
+    // ============ ISSUE-020: Estudiante ve promedio por materia ============
+    public void mostrarMenuPromedioPorMateria(Scanner scanner, String estudianteId, List<String> materiasIds, List<String> materiasNombres) {  // Muestra el promedio por cada materia
+        System.out.println("\n--- MIS PROMEDIOS POR MATERIA ---");  // Titulo de la seccion
+
+        try {  // Intenta ejecutar el calculo
+            System.out.println("\nMATERIA               | PROMEDIO");  // Cabecera de la tabla
+            System.out.println("----------------------|----------");
+
+            for (int i = 0; i < materiasIds.size(); i++) {  // Recorre cada materia
+                String materiaId = materiasIds.get(i);  // Obtiene el ID de la materia
+                String materiaNombre = materiasNombres.get(i);  // Obtiene el nombre de la materia
+
+                OptionalDouble promedio = service.calcularPromedioPorMateria(estudianteId, materiaId);  // Calcula el promedio
+
+                String nombreMostrar = materiaNombre.length() > 20 ?  // Acorta nombre si es largo
+                        materiaNombre.substring(0, 17) + "..." : materiaNombre;
+
+                if (promedio.isPresent()) {  // Si tiene notas
+                    System.out.printf("%-20s | %.2f\n", nombreMostrar, promedio.getAsDouble());  // Muestra el promedio
+                } else {  // Si no tiene notas
+                    System.out.printf("%-20s | Sin notas registradas\n", nombreMostrar);  // Mensaje informativo
+                }
+            }
+        } catch (Exception e) {  // Captura cualquier error
+            System.out.println("Error: " + e.getMessage());  // Muestra el mensaje de error
+        }
+    }
+
+    // ============ ISSUE-020: Estudiante ve promedio general ============
+    public void mostrarMenuPromedioGeneral(Scanner scanner, String estudianteId, List<String> materiasIds) {  // Muestra el promedio general del estudiante
+        System.out.println("\n--- MI PROMEDIO GENERAL ---");  // Titulo de la seccion
+
+        try {  // Intenta ejecutar el calculo
+            OptionalDouble promedioGeneral = service.calcularPromedioGeneral(estudianteId, materiasIds);  // Calcula el promedio general
+
+            if (promedioGeneral.isPresent()) {  // Si tiene al menos una nota en alguna materia
+                System.out.printf("Promedio general: %.2f\n", promedioGeneral.getAsDouble());  // Muestra el promedio
+            } else {  // Si no tiene ninguna nota en ninguna materia
+                System.out.println("Promedio general: Sin datos - aun no tienes notas registradas.");  // Mensaje informativo
             }
         } catch (Exception e) {  // Captura cualquier error
             System.out.println("Error: " + e.getMessage());  // Muestra el mensaje de error

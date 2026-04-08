@@ -9,6 +9,7 @@ import org.manageSchool.shared.util.JsonFileManager;  // Importa el manejador de
 import java.util.ArrayList;  // Importa ArrayList para limpiar datos
 import java.util.OptionalDouble;
 import static org.junit.jupiter.api.Assertions.*;  // Importa metodos de verificacion
+import java.util.List;  // Para las listas de materiasIds
 
 class GradeServiceTest {  // Clase con todas las pruebas de GradeService
     private GradeService gradeService;  // Servicio a probar
@@ -224,6 +225,65 @@ class GradeServiceTest {  // Clase con todas las pruebas de GradeService
     void listByStudent_lanzaErrorSiEstudianteIdNull() {  // Verifica que no permite buscar con ID null
         Exception exception = assertThrows(RuntimeException.class, () -> {
             gradeService.listByStudent(null);  // ID null
+        });
+        assertEquals("El ID del estudiante no puede estar vacio.", exception.getMessage());
+    }
+
+    // ============ TESTS PARA ISSUE-020 ============
+
+    @Test  // Prueba 18: calcularPromedioGeneral calcula correctamente el promedio general
+    void calcularPromedioGeneral_devuelvePromedioCorrecto() {  // Verifica el calculo del promedio general
+        // Crear notas para las 5 materias predeterminadas
+        // Materia 1: 4.0
+        gradeService.create("est-001", "task-001", "mat-001", 4.0, "prof-001");
+        // Materia 2: 3.5
+        gradeService.create("est-001", "task-002", "mat-002", 3.5, "prof-001");
+        // Materia 3: 5.0
+        gradeService.create("est-001", "task-003", "mat-003", 5.0, "prof-001");
+        // Materia 4: 4.5
+        gradeService.create("est-001", "task-004", "mat-004", 4.5, "prof-001");
+        // Materia 5: 3.0
+        gradeService.create("est-001", "task-005", "mat-005", 3.0, "prof-001");
+
+        List<String> materiasIds = List.of("mat-001", "mat-002", "mat-003", "mat-004", "mat-005");
+        OptionalDouble promedioGeneral = gradeService.calcularPromedioGeneral("est-001", materiasIds);
+
+        assertTrue(promedioGeneral.isPresent());  // Verifica que hay promedio
+        // (4.0 + 3.5 + 5.0 + 4.5 + 3.0) = 20.0 / 5 = 4.0
+        assertEquals(4.0, promedioGeneral.getAsDouble(), 0.01);  // Verifica el valor
+    }
+
+    @Test  // Prueba 19: calcularPromedioGeneral excluye materias sin notas (RN-04)
+    void calcularPromedioGeneral_excluyeMateriasSinNotas() {  // Verifica que no incluye materias sin notas
+        // Solo crear notas para 3 de las 5 materias
+        gradeService.create("est-001", "task-001", "mat-001", 4.0, "prof-001");
+        gradeService.create("est-001", "task-002", "mat-002", 5.0, "prof-001");
+        gradeService.create("est-001", "task-003", "mat-003", 3.0, "prof-001");
+        // mat-004 y mat-005 no tienen notas
+
+        List<String> materiasIds = List.of("mat-001", "mat-002", "mat-003", "mat-004", "mat-005");
+        OptionalDouble promedioGeneral = gradeService.calcularPromedioGeneral("est-001", materiasIds);
+
+        assertTrue(promedioGeneral.isPresent());  // Verifica que hay promedio
+        // Solo considera mat-001, mat-002, mat-003
+        // (4.0 + 5.0 + 3.0) = 12.0 / 3 = 4.0
+        assertEquals(4.0, promedioGeneral.getAsDouble(), 0.01);  // Verifica el valor
+    }
+
+    @Test  // Prueba 20: calcularPromedioGeneral retorna vacio si no hay notas
+    void calcularPromedioGeneral_retornaVacioSiNoHayNotas() {  // Verifica que retorna vacio cuando no hay notas
+        List<String> materiasIds = List.of("mat-001", "mat-002", "mat-003", "mat-004", "mat-005");
+        OptionalDouble promedioGeneral = gradeService.calcularPromedioGeneral("est-001", materiasIds);
+
+        assertFalse(promedioGeneral.isPresent());  // Verifica que esta vacio
+    }
+
+    @Test  // Prueba 21: calcularPromedioGeneral lanza error si estudianteId es vacio
+    void calcularPromedioGeneral_lanzaErrorSiEstudianteIdVacio() {  // Verifica que no permite calcular con ID vacio
+        List<String> materiasIds = List.of("mat-001", "mat-002");
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            gradeService.calcularPromedioGeneral("", materiasIds);  // ID vacio
         });
         assertEquals("El ID del estudiante no puede estar vacio.", exception.getMessage());
     }
