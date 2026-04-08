@@ -22,7 +22,7 @@ class AuthServiceTest {
         service = new AuthService(repoMock);
     }
 
-    // ===== seedDefaultAdmin =====
+    // ===== ISSUE-003: seedDefaultAdmin =====
 
     @Test
     @DisplayName("CP-AUTH-001: Crea admin por defecto si no existe")
@@ -45,46 +45,7 @@ class AuthServiceTest {
         verify(repoMock, never()).save(any(User.class));
     }
 
-    // ===== login =====
-
-    @Test
-    @DisplayName("CP-AUTH-003: Login exitoso con credenciales válidas")
-    void login_exitosoConCredencialesValidas() {
-        String hash = BCrypt.hashpw("Admin2026", BCrypt.gensalt());
-        User usuario = User.crear("Administrador", "admin@colegio.edu.co", hash, "ADMIN");
-        when(repoMock.findByEmail("admin@colegio.edu.co")).thenReturn(Optional.of(usuario));
-
-        User resultado = service.login("admin@colegio.edu.co", "Admin2026");
-
-        assertNotNull(resultado);
-        assertEquals("admin@colegio.edu.co", resultado.getCorreo());
-    }
-
-    @Test
-    @DisplayName("CP-AUTH-006: Login falla con correo no registrado")
-    void login_fallaConCorreoNoRegistrado() {
-        when(repoMock.findByEmail("noexiste@colegio.edu.co")).thenReturn(Optional.empty());
-
-        AppException ex = assertThrows(AppException.class,
-                () -> service.login("noexiste@colegio.edu.co", "cualquier"));
-
-        assertEquals("Correo no registrado en el sistema.", ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("CP-AUTH-006: Login falla con contraseña incorrecta")
-    void login_fallaConContrasenaIncorrecta() {
-        String hash = BCrypt.hashpw("Admin2026", BCrypt.gensalt());
-        User usuario = User.crear("Administrador", "admin@colegio.edu.co", hash, "ADMIN");
-        when(repoMock.findByEmail("admin@colegio.edu.co")).thenReturn(Optional.of(usuario));
-
-        AppException ex = assertThrows(AppException.class,
-                () -> service.login("admin@colegio.edu.co", "ContraseñaWrong"));
-
-        assertEquals("Contraseña incorrecta.", ex.getMessage());
-    }
-
-    // ===== createAccount =====
+    // ===== ISSUE-003: createAccount =====
 
     @Test
     @DisplayName("CP-AUTH-001b: Crea cuenta de profesor exitosamente")
@@ -102,7 +63,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("CP-AUTH-002: Rechaza correo no institucional")
+    @DisplayName("CP-AUTH-002: Rechaza correo no institucional al crear cuenta")
     void createAccount_rechazaCorreoNoInstitucional() {
         CreateUserRequest request = new CreateUserRequest(
                 "Juan", "juan@gmail.com", "Pass123", "ESTUDIANTE");
@@ -137,5 +98,81 @@ class AuthServiceTest {
                 () -> service.createAccount(request));
 
         assertEquals("El nombre no puede estar vacío.", ex.getMessage());
+    }
+
+    // ===== ISSUE-004: login =====
+
+    @Test
+    @DisplayName("CP-AUTH-003: Login exitoso como Administrador")
+    void login_exitosoComoAdmin() {
+        String hash = BCrypt.hashpw("Admin2026", BCrypt.gensalt());
+        User usuario = User.crear("Administrador", "admin@colegio.edu.co", hash, "ADMIN");
+        when(repoMock.findByEmail("admin@colegio.edu.co")).thenReturn(Optional.of(usuario));
+
+        User resultado = service.login("admin@colegio.edu.co", "Admin2026");
+
+        assertNotNull(resultado);
+        assertEquals("ADMIN", resultado.getRol());
+        assertEquals("admin@colegio.edu.co", resultado.getCorreo());
+    }
+
+    @Test
+    @DisplayName("CP-AUTH-003: Login exitoso como Profesor")
+    void login_exitosoComoProfesor() {
+        String hash = BCrypt.hashpw("Prof123", BCrypt.gensalt());
+        User usuario = User.crear("Carlos López", "prof@colegio.edu.co", hash, "PROFESOR");
+        when(repoMock.findByEmail("prof@colegio.edu.co")).thenReturn(Optional.of(usuario));
+
+        User resultado = service.login("prof@colegio.edu.co", "Prof123");
+
+        assertNotNull(resultado);
+        assertEquals("PROFESOR", resultado.getRol());
+    }
+
+    @Test
+    @DisplayName("CP-AUTH-003: Login exitoso como Estudiante")
+    void login_exitosoComoEstudiante() {
+        String hash = BCrypt.hashpw("Est123", BCrypt.gensalt());
+        User usuario = User.crear("Ana Ruiz", "est@colegio.edu.co", hash, "ESTUDIANTE");
+        when(repoMock.findByEmail("est@colegio.edu.co")).thenReturn(Optional.of(usuario));
+
+        User resultado = service.login("est@colegio.edu.co", "Est123");
+
+        assertNotNull(resultado);
+        assertEquals("ESTUDIANTE", resultado.getRol());
+    }
+
+    @Test
+    @DisplayName("CP-AUTH-002b: Login rechazado con correo no institucional")
+    void login_rechazaCorreoNoInstitucional() {
+        AppException ex = assertThrows(AppException.class,
+                () -> service.login("jdoe@gmail.com", "cualquier"));
+
+        assertEquals("Correo o contraseña incorrectos.", ex.getMessage());
+        verify(repoMock, never()).findByEmail(anyString());
+    }
+
+    @Test
+    @DisplayName("CP-AUTH-006: Login falla con usuario inexistente")
+    void login_fallaConCorreoNoRegistrado() {
+        when(repoMock.findByEmail("fantasma@colegio.edu.co")).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+                () -> service.login("fantasma@colegio.edu.co", "cualquier"));
+
+        assertEquals("Correo o contraseña incorrectos.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("CP-AUTH-006: Login falla con contraseña incorrecta")
+    void login_fallaConContrasenaIncorrecta() {
+        String hash = BCrypt.hashpw("Admin2026", BCrypt.gensalt());
+        User usuario = User.crear("Administrador", "admin@colegio.edu.co", hash, "ADMIN");
+        when(repoMock.findByEmail("admin@colegio.edu.co")).thenReturn(Optional.of(usuario));
+
+        AppException ex = assertThrows(AppException.class,
+                () -> service.login("admin@colegio.edu.co", "ContraseñaWrong"));
+
+        assertEquals("Correo o contraseña incorrectos.", ex.getMessage());
     }
 }
