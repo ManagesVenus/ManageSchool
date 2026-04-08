@@ -62,4 +62,11 @@ public class GradeRepository {  // Clase que maneja el acceso a datos de notas
         grades.removeIf(g -> g.getId().equals(id));  // Elimina la nota que coincide con el ID
         JsonFileManager.writeAll(FILE, grades);  // Guarda la lista actualizada
     }
+
+    // ============ ISSUE-019: Buscar notas por ID de estudiante ============
+    public List<Grade> findByStudentId(String estudianteId) {  // Busca todas las notas de un estudiante
+        return findAll().stream()  // Convierte la lista en flujo
+                .filter(g -> g.getEstudianteId().equals(estudianteId))  // Filtra por ID del estudiante
+                .collect(Collectors.toList());  // Recoge los resultados en una lista
+    }
 }

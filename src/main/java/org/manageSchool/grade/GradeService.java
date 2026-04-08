@@ -92,4 +92,12 @@ public class GradeService {  // Clase que contiene la logica de negocio para not
         }
         return OptionalDouble.of(suma / grades.size());  // Retorna el promedio (suma / cantidad)
     }
+
+    // ============ ISSUE-019: Listar notas por estudiante ============
+    public List<Grade> listByStudent(String estudianteId) {  // Devuelve todas las notas de un estudiante
+        if (estudianteId == null || estudianteId.trim().isEmpty()) {  // Valida que no este vacio
+            throw new RuntimeException("El ID del estudiante no puede estar vacio.");  // Error si esta vacio
+        }
+        return repo.findByStudentId(estudianteId);  // Delega en el repositorio
+    }
 }
