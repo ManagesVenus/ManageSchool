@@ -23,18 +23,23 @@ public class AuthService {
 
     // Autentica un usuario. Lanza AppException si las credenciales son inválidas.
     public User login(String correo, String contrasena) {
+        // CP-AUTH-002b: rechazar correos sin dominio institucional
+        if (!Validator.isValidEmail(correo)) {
+            throw new AppException("Correo o contraseña incorrectos.");
+        }
+
+        // CP-AUTH-006: mensaje genérico para no revelar qué falló
         User user = repo.findByEmail(correo)
-                .orElseThrow(() -> new AppException("Correo no registrado en el sistema."));
+                .orElseThrow(() -> new AppException("Correo o contraseña incorrectos."));
 
         if (!BCrypt.checkpw(contrasena, user.getContrasena())) {
-            throw new AppException("Contraseña incorrecta.");
+            throw new AppException("Correo o contraseña incorrectos.");
         }
 
         if (!user.isActivo()) {
             throw new AppException("Esta cuenta está desactivada.");
         }
 
-        System.out.println("Bienvenido "+user.getNombre()+"!");
         return user;
     }
 
