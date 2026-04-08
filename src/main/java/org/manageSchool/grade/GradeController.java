@@ -120,4 +120,32 @@ public class GradeController {  // Clase que maneja la interaccion con el usuari
             System.out.println("Error: " + e.getMessage());  // Muestra el mensaje de error
         }
     }
+
+    // ============ ISSUE-019: Estudiante ve sus notas por tarea ============
+    public void mostrarMenuVerNotasPorTarea(Scanner scanner, String estudianteId) {  // Muestra las notas del estudiante
+        System.out.println("\n--- MIS NOTAS POR TAREA ---");  // Titulo de la seccion
+
+        try {  // Intenta ejecutar el listado
+            List<Grade> notas = service.listByStudent(estudianteId);  // Obtiene las notas del estudiante
+
+            if (notas.isEmpty()) {  // Si no hay notas
+                System.out.println("Aun no tienes notas registradas.");  // Mensaje informativo
+                return;  // Sale del metodo
+            }
+
+            // Cabecera de la tabla
+            System.out.println("\nMATERIA     | TAREA ID | NOTA | FECHA");
+            System.out.println("------------|----------|------|----------");
+            for (Grade g : notas) {  // Recorre cada nota
+                String materiaId = g.getMateriaId().length() > 10 ?
+                        g.getMateriaId().substring(0, 10) : g.getMateriaId();  // Acorta ID materia
+                String tareaId = g.getTareaId().length() > 8 ?
+                        g.getTareaId().substring(0, 8) : g.getTareaId();  // Acorta ID tarea
+                System.out.printf("%-10s | %-8s | %-4.1f | %s\n",  // Imprime fila formateada
+                        materiaId, tareaId, g.getValor(), g.getFechaRegistro());
+            }
+        } catch (Exception e) {  // Captura cualquier error
+            System.out.println("Error: " + e.getMessage());  // Muestra el mensaje de error
+        }
+    }
 }

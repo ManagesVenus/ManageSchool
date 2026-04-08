@@ -194,4 +194,37 @@ class GradeServiceTest {  // Clase con todas las pruebas de GradeService
         assertTrue(promedioMat002.isPresent());  // mat-002 tiene nota
         assertEquals(5.0, promedioMat002.getAsDouble(), 0.01);  // 5.0
     }
+
+    // ============ TESTS PARA ISSUE-019 ============
+
+    @Test  // Prueba 15: listByStudent devuelve notas de un estudiante especifico
+    void listByStudent_devuelveNotasDelEstudiante() {  // Verifica que listByStudent filtra correctamente por estudianteId
+        // Crear notas para dos estudiantes diferentes
+        gradeService.create("est-001", "task-001", "mat-001", 4.0, "prof-001");
+        gradeService.create("est-001", "task-002", "mat-001", 5.0, "prof-001");
+        gradeService.create("est-002", "task-001", "mat-001", 3.5, "prof-001");
+
+        // Verificar que est-001 tiene 2 notas
+        assertEquals(2, gradeService.listByStudent("est-001").size());
+        // Verificar que est-002 tiene 1 nota
+        assertEquals(1, gradeService.listByStudent("est-002").size());
+        // Verificar que est-003 tiene 0 notas
+        assertEquals(0, gradeService.listByStudent("est-003").size());
+    }
+
+    @Test  // Prueba 16: listByStudent lanza error si estudianteId es vacio
+    void listByStudent_lanzaErrorSiEstudianteIdVacio() {  // Verifica que no permite buscar con ID vacio
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            gradeService.listByStudent("");  // ID vacio
+        });
+        assertEquals("El ID del estudiante no puede estar vacio.", exception.getMessage());
+    }
+
+    @Test  // Prueba 17: listByStudent lanza error si estudianteId es null
+    void listByStudent_lanzaErrorSiEstudianteIdNull() {  // Verifica que no permite buscar con ID null
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            gradeService.listByStudent(null);  // ID null
+        });
+        assertEquals("El ID del estudiante no puede estar vacio.", exception.getMessage());
+    }
 }
