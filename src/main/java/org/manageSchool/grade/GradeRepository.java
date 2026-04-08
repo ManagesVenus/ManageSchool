@@ -36,4 +36,30 @@ public class GradeRepository {  // Clase que maneja el acceso a datos de notas
         grades.add(grade);  // Agrega la nueva nota
         JsonFileManager.writeAll(FILE, grades);  // Guarda la lista completa en el archivo
     }
+
+    // ============ ISSUE-018: Buscar notas por estudiante y materia ============
+    public List<Grade> findByStudentAndSubject(String estudianteId, String materiaId) {  // Busca notas por estudiante y materia
+        return findAll().stream()  // Convierte la lista en flujo
+                .filter(g -> g.getEstudianteId().equals(estudianteId) && g.getMateriaId().equals(materiaId))  // Filtra por estudiante y materia
+                .collect(Collectors.toList());  // Recoge los resultados en una lista
+    }
+
+    // ============ ISSUE-018: Actualizar nota ============
+    public void update(Grade grade) {  // Actualiza una nota existente
+        List<Grade> grades = findAll();  // Obtiene todas las notas actuales
+        for (int i = 0; i < grades.size(); i++) {  // Recorre la lista
+            if (grades.get(i).getId().equals(grade.getId())) {  // Busca por ID
+                grades.set(i, grade);  // Reemplaza la nota en esa posicion
+                break;  // Sale del ciclo
+            }
+        }
+        JsonFileManager.writeAll(FILE, grades);  // Guarda la lista actualizada
+    }
+
+    // ============ ISSUE-018: Eliminar nota ============
+    public void deleteById(String id) {  // Elimina una nota por ID
+        List<Grade> grades = findAll();  // Obtiene todas las notas actuales
+        grades.removeIf(g -> g.getId().equals(id));  // Elimina la nota que coincide con el ID
+        JsonFileManager.writeAll(FILE, grades);  // Guarda la lista actualizada
+    }
 }
