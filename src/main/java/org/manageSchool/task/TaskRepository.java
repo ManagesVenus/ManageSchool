@@ -50,9 +50,6 @@ public class TaskRepository {
                 .findFirst();
     }
 
-    // -------------------------------------------------------------------------
-    // ESCRITURA
-    // -------------------------------------------------------------------------
 
     /**
      * @param task Tarea a guardar (debe tener ID, titulo, materiaId y profesorId)
