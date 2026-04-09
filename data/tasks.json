@@ -1,0 +1,8 @@
+[ {
+  "id" : "3b49ec80-d8d2-4ff1-b3c8-a1e488d7d415",
+  "titulo" : "Taller de álgebra",
+  "descripcion" : "Capítulo 5",
+  "fechaLimite" : "2025-03-01",
+  "materiaId" : "MAT-101",
+  "profesorId" : "PROF-001"
+} ]

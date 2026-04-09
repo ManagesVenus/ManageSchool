@@ -1,0 +1,90 @@
+package org.manageSchool.subject;  // Define el paquete donde está esta clase
+
+import java.util.List;  // Importa List para manejar la lista de materias predeterminadas
+import java.util.UUID;  // Importa UUID para generar IDs únicos
+
+public class SubjectService {  // Clase que contiene la lógica de negocio para materias
+    private final SubjectRepository repo = new SubjectRepository();  // Instancia del repositorio para acceder a datos
+
+    private static final List<String> DEFAULT_SUBJECTS = List.of(  // Lista de las 5 materias predeterminadas
+            "Matemáticas",  // Primera materia
+            "Español",  // Segunda materia
+            "Ciencias Naturales",  // Tercera materia
+            "Ciencias Sociales",  // Cuarta materia
+            "Inglés"  // Quinta materia
+    );
+
+    // ============ ISSUE-012: Carga automática de materias predeterminadas ============
+
+    public void seedDefaultSubjects() {  // Metodo que carga las 5 materias predeterminadas al iniciar el sistema
+        for (String nombre : DEFAULT_SUBJECTS) {  // Recorre cada nombre de materia predeterminada
+            if (!repo.existsByNombre(nombre)) {  // Si la materia NO existe aún en el archivo
+                Subject subject = new Subject(  // Crea un nuevo objeto Subject
+                        UUID.randomUUID().toString(),  // Genera un ID único universal
+                        nombre,  // Asigna el nombre de la materia
+                        true,  // predeterminada = true (es una materia base del sistema)
+                        true  // activa = true (está habilitada para usar)
+                );
+                repo.save(subject);  // Guarda la materia en el archivo subjects.json
+                System.out.println("Materia predeterminada creada: " + nombre);  // Mensaje de confirmación
+            }
+        }
+    }
+
+    // ============ ISSUE-013: Crear materia personalizada ============
+    public Subject create(String nombre) {  // Metodo para crear una nueva materia personalizada
+        if (nombre == null || nombre.trim().isEmpty()) {  // Valida que el nombre no sea nulo ni vacio
+            throw new RuntimeException("El nombre de la materia no puede estar vacio.");  // Lanza error si esta vacio
+        }
+        if (repo.existsByNombre(nombre)) {  // Verifica si ya existe una materia con ese nombre
+            throw new RuntimeException("Ya existe una materia con ese nombre.");  // Lanza error si ya existe
+        }
+        Subject subject = new Subject(  // Crea un nuevo objeto Subject
+                UUID.randomUUID().toString(),  // Genera un ID unico universal
+                nombre,  // Asigna el nombre ingresado por el usuario
+                false,  // predeterminada = false (es una materia creada por el Admin)
+                true  // activa = true (esta habilitada para usar)
+        );
+        repo.save(subject);  // Guarda la materia en el archivo subjects.json
+        return subject;  // Devuelve la materia creada
+    }
+
+    // ============ ISSUE-014: Listar materias ============
+    public List<Subject> listAll() {  // Metodo que devuelve todas las materias
+        return repo.findAll();  // Delega en el repositorio
+    }
+
+    // ============ ISSUE-014: Editar materia ============
+    public Subject update(String id, String nuevoNombre) {  // Metodo para editar una materia
+        Subject subject = repo.findById(id)  // Busca la materia por ID
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada."));  // Error si no existe
+
+        if (subject.isPredeterminada()) {  // Verifica si es predeterminada
+            throw new RuntimeException("Las materias predeterminadas no pueden editarse.");  // No permite editar
+        }
+
+        if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) {  // Valida nombre no vacio
+            throw new RuntimeException("El nombre no puede estar vacio.");  // Error si esta vacio
+        }
+
+        if (repo.existsByNombre(nuevoNombre)) {  // Verifica si el nombre ya existe
+            throw new RuntimeException("Ya existe una materia con ese nombre.");  // Error si existe duplicado
+        }
+
+        subject.setNombre(nuevoNombre);  // Asigna el nuevo nombre
+        repo.update(subject);  // Guarda los cambios
+        return subject;  // Devuelve la materia actualizada
+    }
+
+    // ============ ISSUE-014: Eliminar materia ============
+    public void delete(String id) {  // Metodo para eliminar una materia
+        Subject subject = repo.findById(id)  // Busca la materia por ID
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada."));  // Error si no existe
+
+        if (subject.isPredeterminada()) {  // Verifica si es predeterminada
+            throw new RuntimeException("Las materias predeterminadas no pueden eliminarse en v1.0.");  // No permite eliminar
+        }
+
+        repo.deleteById(id);  // Elimina la materia
+    }
+}

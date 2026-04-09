@@ -1,0 +1,9 @@
+[ {
+  "id" : "v2a",
+  "nombre" : "Versión 2a",
+  "valor" : 2
+}, {
+  "id" : "v2b",
+  "nombre" : "Versión 2b",
+  "valor" : 3
+} ]
