@@ -6,23 +6,23 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.school</groupId>
-    <artifactId>schoolapp-cli</artifactId>
+    <groupId>org.ManageSchool</groupId>
+    <artifactId>ManageSchool</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>SchoolApp CLI</name>
+    <name>ManageSchool</name>
     <description>Sistema de gestión escolar por terminal</description>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
 
-        <!-- Jackson: serializacion y deserialización de objetos Java a/desde JSON -->
+        <!-- Jackson: serialización y deserialización de objetos Java a/desde JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -44,6 +44,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Mockito: simulación de dependencias en tests -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.17.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -62,7 +70,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.school.App</mainClass>
+                    <mainClass>org.manageSchool.Main</mainClass>
                 </configuration>
             </plugin>
 
