@@ -6,12 +6,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.manageSchool</groupId>
-    <artifactId>schoolapp-cli</artifactId>
+    <groupId>org.ManageSchool</groupId>
+    <artifactId>ManageSchool</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>SchoolApp CLI</name>
+    <name>ManageSchool</name>
     <description>Sistema de gestión escolar por terminal</description>
 
     <properties>
