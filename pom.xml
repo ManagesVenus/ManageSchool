@@ -7,11 +7,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.school</groupId>
-    <artifactId>schoolapp-cli</artifactId>
+    <artifactId>ManageSchool</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>SchoolApp CLI</name>
+    <name>ManageSchool</name>
     <description>Sistema de gestión escolar por terminal</description>
 
     <properties>
