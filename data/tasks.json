@@ -5,4 +5,11 @@
   "fechaLimite" : "2025-03-01",
   "materiaId" : "MAT-101",
   "profesorId" : "PROF-001"
+}, {
+  "id" : "75a99756-ed37-42ca-9de8-82e2f7dc1035",
+  "titulo" : "Taller de álgebra",
+  "descripcion" : "Capítulo 5",
+  "fechaLimite" : "2025-03-01",
+  "materiaId" : "MAT-101",
+  "profesorId" : "PROF-001"
 } ]
