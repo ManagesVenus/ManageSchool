@@ -1,9 +1,9 @@
 package org.manageSchool.auth;
 
-import org.manageSchool.shared.util.JsonFileManager;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.manageSchool.shared.util.JsonFileManager;
 
 public class AuthRepository {
 

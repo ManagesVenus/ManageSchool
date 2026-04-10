@@ -5,6 +5,7 @@ import org.manageSchool.auth.AuthRepository;
 import org.manageSchool.auth.AuthService;
 import org.manageSchool.auth.User;
 import org.manageSchool.shared.util.MenuHelper;
+import org.manageSchool.student.StudentController;
 import org.manageSchool.subject.SubjectService;
 
 import java.util.Scanner;
@@ -57,6 +58,7 @@ public class Main {
     // Maneja la sesión del usuario autenticado según su rol
     private static void manejarSesion(Scanner scanner, User usuario, AuthController authController) {
         boolean sesionActiva = true;
+        StudentController studentController = new StudentController();
 
         while (sesionActiva) {
             int opcion = MenuHelper.mostrarMenuPorRol(scanner, usuario.getRol());
@@ -64,7 +66,7 @@ public class Main {
             switch (usuario.getRol().toUpperCase()) {
                 case "ADMIN" -> {
                     switch (opcion) {
-                        case 1 -> System.out.println("  [Gestionar Estudiantes — pendiente de implementar]");
+                        case 1 -> studentController.mostrarMenu(scanner);
                         case 2 -> System.out.println("  [Gestionar Profesores — pendiente de implementar]");
                         case 3 -> System.out.println("  [Gestionar Materias — pendiente de implementar]");
                         case 4 -> System.out.println("  [Ver Ranking Trimestral — pendiente de implementar]");
@@ -74,7 +76,7 @@ public class Main {
                 }
                 case "PROFESOR" -> {
                     switch (opcion) {
-                        case 1 -> System.out.println("  [Gestionar Estudiantes — pendiente de implementar]");
+                        case 1 -> studentController.mostrarMenu(scanner);
                         case 2 -> System.out.println("  [Gestionar Tareas — pendiente de implementar]");
                         case 3 -> System.out.println("  [Gestionar Notas — pendiente de implementar]");
                         case 4 -> sesionActiva = false;
