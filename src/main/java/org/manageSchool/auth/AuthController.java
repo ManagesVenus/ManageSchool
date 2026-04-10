@@ -1,7 +1,8 @@
 package org.manageSchool.auth;
 
-import org.manageSchool.shared.AppException;
 import java.util.Scanner;
+
+import org.manageSchool.shared.AppException;
 
 public class AuthController {
 
