@@ -40,7 +40,7 @@ public class ProfessorController {
 
             switch (opcion) {
                 case 1 -> crearProfesor(scanner);
-                case 2 -> System.out.println("listarProfesores();");
+                case 2 -> listarProfesores();
                 case 3 -> activo = false;
                 default -> System.out.println("  Opción inválida.");
             }
@@ -68,6 +68,25 @@ public class ProfessorController {
             System.out.println("    Rol:    " + profesor.getRol());
         } catch (AppException e) {
             System.out.println("  Error: " + e.getMessage());
+        }
+    }
+
+    // ISSUE-028 / CP-PROF-002: muestra la lista de profesores registrados.
+    private void listarProfesores() {
+        List<Professor> profesores = service.listAllSorted();
+
+        if (profesores.isEmpty()) {
+            System.out.println("  No hay profesores registrados.");
+            return;
+        }
+
+        System.out.println("\n  ===== LISTA DE PROFESORES =====");
+        System.out.printf("  Total: %d profesor(es)%n%n", profesores.size());
+        int i = 1;
+        for (Professor p : profesores) {
+            String estado = p.isActivo() ? "Activo" : "Inactivo";
+            System.out.printf("  %d. %s | %s | %s%n",
+                    i++, p.getNombre(), p.getCorreo(), estado);
         }
     }
 }

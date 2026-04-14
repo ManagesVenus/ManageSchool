@@ -43,4 +43,12 @@ public class ProfessorService {
     public List<Professor> listAll () {
         return repo.findAll();
     }
+
+    // ISSUE-028 / CP-PROF-002: lista profesores ordenados alfabéticamente por nombre
+    public List<Professor> listAllSorted() {
+        return repo.findAll().stream()
+                .sorted(java.util.Comparator.comparing(
+                        p -> p.getNombre() == null ? "" : p.getNombre().toLowerCase()))
+                .toList();
+    }
 }

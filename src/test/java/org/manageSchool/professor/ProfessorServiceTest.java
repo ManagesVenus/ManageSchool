@@ -100,4 +100,47 @@ public class ProfessorServiceTest {
 
         assertEquals("El nombre no puede estar vacío.", ex.getMessage());
     }
+
+    // ===== ISSUE-028 / CP-PROF-002: Listar profesores =====
+
+    @Test
+    @DisplayName("CP-PROF-002: Lista con profesores registrados devuelve todos ordenados por nombre")
+    void listAllSorted_devuelveProfesoresOrdenadosPorNombre() {
+        User u1 = User.crear("Zulema Ríos", "zulema@colegio.edu.co", "h", Professor.ROL);
+        User u2 = User.crear("Ana López", "ana@colegio.edu.co", "h", Professor.ROL);
+        User u3 = User.crear("Marta Díaz", "marta@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findAll()).thenReturn(List.of(
+                new Professor(u1), new Professor(u2), new Professor(u3)));
+
+        List<Professor> resultado = service.listAllSorted();
+
+        assertEquals(3, resultado.size());
+        assertEquals("Ana López",   resultado.get(0).getNombre());
+        assertEquals("Marta Díaz",  resultado.get(1).getNombre());
+        assertEquals("Zulema Ríos", resultado.get(2).getNombre());
+    }
+
+    @Test
+    @DisplayName("CP-PROF-002: Lista vacía de profesores devuelve colección vacía")
+    void listAllSorted_devuelveListaVaciaSiNoHayProfesores() {
+        when(repoMock.findAll()).thenReturn(List.of());
+
+        List<Professor> resultado = service.listAllSorted();
+
+        assertTrue(resultado.isEmpty());
+        verify(repoMock, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("CP-PROF-002: Ordenamiento es case-insensitive")
+    void listAllSorted_ordenaIgnorandoMayusculas() {
+        User u1 = User.crear("ZULEMA", "zulema@colegio.edu.co", "h", Professor.ROL);
+        User u2 = User.crear("ana", "ana@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findAll()).thenReturn(List.of(new Professor(u1), new Professor(u2)));
+
+        List<Professor> resultado = service.listAllSorted();
+
+        assertEquals("ana", resultado.get(0).getNombre());
+        assertEquals("ZULEMA", resultado.get(1).getNombre());
+    }
 }
