@@ -74,10 +74,27 @@ public class MenuHelper {
         }
     }
 
-    // Limpia la consola (Windows y Unix)
+    /**
+     * Limpia la consola de forma compatible con Windows y Unix.
+     *
+     * En Windows intenta ejecutar "cls" vía ProcessBuilder; si falla
+     * (p. ej. en IDEs con consola integrada), cae a escapes ANSI.
+     * En Unix/Mac usa escapes ANSI directamente.
+     */
     public static void limpiarPantalla() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            // Fallback: si ProcessBuilder falla (IDE, Docker, etc.), usar ANSI
+            System.out.print("\033[H\033[2J");
+            System.out.flush();
+        }
     }
 
     // Línea separadora visual
