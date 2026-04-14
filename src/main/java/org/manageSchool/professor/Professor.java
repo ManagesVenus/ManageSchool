@@ -43,4 +43,7 @@ public class Professor {
     public String getRol()            { return user.getRol(); }
     public boolean isActivo()         { return user.isActivo(); }
     public String getFechaCreacion()  { return user.getFechaCreacion(); }
+
+    public String getNam() {
+    }
 }
