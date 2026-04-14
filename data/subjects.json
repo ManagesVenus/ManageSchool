@@ -1,25 +1,25 @@
 [ {
-  "id" : "d1bf5548-2fad-47b3-8bf9-6796379c635b",
+  "id" : "594f221a-799f-46cf-b76a-d77fd13ebf78",
   "nombre" : "Matemáticas",
   "predeterminada" : true,
   "activa" : true
 }, {
-  "id" : "f53cada1-6b9e-43f1-836a-4bc98aafb17e",
+  "id" : "f4675b3c-be76-49d8-9ffa-e9d1f7d3bc87",
   "nombre" : "Español",
   "predeterminada" : true,
   "activa" : true
 }, {
-  "id" : "36b6bb82-9ea3-4aab-9960-5fd472758d61",
+  "id" : "94d017a0-b93b-41ee-8297-c370adb0928a",
   "nombre" : "Ciencias Naturales",
   "predeterminada" : true,
   "activa" : true
 }, {
-  "id" : "5b321a02-1934-464c-9643-ae8aef411642",
+  "id" : "ff10b598-3778-4493-9215-a5ac679647c0",
   "nombre" : "Ciencias Sociales",
   "predeterminada" : true,
   "activa" : true
 }, {
-  "id" : "c223bb76-ed48-4b94-bd66-c971d56e5a23",
+  "id" : "6aef5951-fa08-4c43-a7b3-c263cd9554e7",
   "nombre" : "Inglés",
   "predeterminada" : true,
   "activa" : true

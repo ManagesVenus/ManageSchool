@@ -6,6 +6,7 @@ import org.manageSchool.auth.AuthService;
 import org.manageSchool.auth.User;
 import org.manageSchool.shared.util.MenuHelper;
 import org.manageSchool.student.StudentController;
+import org.manageSchool.professor.ProfessorController;
 import org.manageSchool.subject.SubjectService;
 
 import java.util.Scanner;
@@ -59,6 +60,7 @@ public class Main {
     private static void manejarSesion(Scanner scanner, User usuario, AuthController authController) {
         boolean sesionActiva = true;
         StudentController studentController = new StudentController();
+        ProfessorController professorController = new ProfessorController();
 
         while (sesionActiva) {
             int opcion = MenuHelper.mostrarMenuPorRol(scanner, usuario.getRol());
@@ -67,7 +69,7 @@ public class Main {
                 case "ADMIN" -> {
                     switch (opcion) {
                         case 1 -> studentController.mostrarMenu(scanner);
-                        case 2 -> System.out.println("  [Gestionar Profesores — pendiente de implementar]");
+                        case 2 -> professorController.mostrarMenu(scanner);
                         case 3 -> System.out.println("  [Gestionar Materias — pendiente de implementar]");
                         case 4 -> System.out.println("  [Ver Ranking Trimestral — pendiente de implementar]");
                         case 5 -> sesionActiva = false; // Cerrar sesión (ISSUE-005)
