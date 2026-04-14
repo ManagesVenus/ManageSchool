@@ -1,0 +1,9 @@
+[ {
+  "id" : "381c3cb4-aa0a-4302-8c4d-225438be9a7d",
+  "estudianteId" : "est-001",
+  "tareaId" : "task-001",
+  "materiaId" : "mat-001",
+  "valor" : 3.0,
+  "fechaRegistro" : "2026-04-14",
+  "profesorId" : "prof-001"
+} ]

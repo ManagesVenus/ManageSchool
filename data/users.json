@@ -6,4 +6,12 @@
   "rol" : "ADMIN",
   "activo" : true,
   "fechaCreacion" : "2026-04-05"
+}, {
+  "id" : "714236be-b0fe-4989-b8be-1fb866e404f6",
+  "nombre" : "Carlos Arango",
+  "correo" : "carlos.arango@colegio.edu.co",
+  "contrasena" : "$2a$10$ApM5vdJ.36X3LFt8KFFXM.ya0dgjvA624g4xqTbEWvC1sPTzexBt.",
+  "rol" : "PROFESOR",
+  "activo" : true,
+  "fechaCreacion" : "2026-04-14"
 } ]
