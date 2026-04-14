@@ -17,7 +17,9 @@ public class StudentController {
             System.out.println("\n  ===== GESTIONAR ESTUDIANTES =====");
             System.out.println("  1. Crear estudiante");
             System.out.println("  2. Listar estudiantes");
-            System.out.println("  3. Volver");
+            System.out.println("  3. Eliminar estudiante");
+            System.out.println("  4. Editar estudiante");
+            System.out.println("  5. Volver");
             System.out.print("  Seleccione una opción: ");
 
             String linea = scanner.nextLine().trim();
@@ -32,7 +34,9 @@ public class StudentController {
             switch (opcion) {
                 case 1 -> crearEstudiante(scanner);
                 case 2 -> listarEstudiantes();
-                case 3 -> activo = false;
+                case 3 -> eliminarEstudiante(scanner);
+                case 4 -> editarEstudiante(scanner);
+                case 5 -> activo = false;
                 default -> System.out.println("  Opción inválida.");
             }
         }
@@ -68,7 +72,39 @@ public class StudentController {
         System.out.println("\n  ===== LISTA DE ESTUDIANTES =====");
         for (Student s : students) {
             String estado = s.isActivo() ? "Activo" : "Inactivo";
-            System.out.println("  - " + s.getNombre() + " | " + s.getCorreo() + " | " + estado);
+            System.out.println("  - ID: " + s.getId() + " | " + s.getNombre() + " | " + s.getCorreo() + " | " + estado);
+        }
+    }
+    private void eliminarEstudiante(Scanner scanner) {
+        System.out.print("  Ingrese el ID del estudiante a eliminar: ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        try {
+            service.deleteById(id);
+            System.out.println("  Estudiante eliminado correctamente.");
+        } catch (AppException e) {
+            System.out.println("  Error: " + e.getMessage());
+        }
+    }
+
+    private void editarEstudiante(Scanner scanner) {
+        System.out.print("  Ingrese el ID del estudiante a editar: ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        try {
+            Student student = service.findById(id);
+
+            System.out.print("  Nuevo nombre (" + student.getNombre() + "): ");
+            String nombre = scanner.nextLine().trim();
+
+            System.out.print("  Nuevo correo (" + student.getCorreo() + "): ");
+            String correo = scanner.nextLine().trim();
+
+            service.update(id, nombre, correo);
+
+            System.out.println("  Estudiante actualizado correctamente.");
+        } catch (AppException e) {
+            System.out.println("  Error: " + e.getMessage());
         }
     }
 }
