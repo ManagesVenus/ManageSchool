@@ -3,6 +3,7 @@ package org.manageSchool.professor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.manageSchool.auth.AuthRepository;
 import org.manageSchool.auth.AuthService;
 import org.manageSchool.auth.CreateUserRequest;
 import org.manageSchool.auth.User;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.*;
 
 public class ProfessorServiceTest {
 
+    private AuthRepository authRepoMock;
     private ProfessorRepository repoMock;
     private AuthService authServiceMock;
     private ProfessorService service;
@@ -24,6 +26,8 @@ public class ProfessorServiceTest {
     void setUp() {
         repoMock = mock(ProfessorRepository.class);
         authServiceMock = mock(AuthService.class);
+        authRepoMock = mock(AuthRepository.class);
+        when(repoMock.getAuthRepository()).thenReturn(authRepoMock);
         service = new ProfessorService(repoMock, authServiceMock);
     }
 
@@ -142,5 +146,98 @@ public class ProfessorServiceTest {
 
         assertEquals("ana", resultado.get(0).getNombre());
         assertEquals("ZULEMA", resultado.get(1).getNombre());
+    }
+
+    // ===== ISSUE-029 / CP-PROF-003: Editar profesor =====
+
+    @Test
+    @DisplayName("CP-PROF-003: Edita nombre exitosamente")
+    void update_editaNombreExitosamente() {
+        User user = User.crear("Pedro Ruiz", "pedro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId())).thenReturn(java.util.Optional.of(new Professor(user)));
+
+        Professor actualizado = service.update(user.getId(), "Pedro Ruiz Montoya", "");
+
+        assertEquals("Pedro Ruiz Montoya", actualizado.getNombre());
+        assertEquals("pedro@colegio.edu.co", actualizado.getCorreo()); // correo no cambia
+        verify(authRepoMock, times(1)).update(user);
+    }
+
+    @Test
+    @DisplayName("CP-PROF-003: Edita correo exitosamente cuando no está en uso")
+    void update_editaCorreoExitosamente() {
+        User user = User.crear("Pedro", "pedro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId())).thenReturn(java.util.Optional.of(new Professor(user)));
+        when(authRepoMock.findByEmail("pedro.nuevo@colegio.edu.co"))
+                .thenReturn(java.util.Optional.empty());
+
+        Professor actualizado = service.update(user.getId(), "", "pedro.nuevo@colegio.edu.co");
+
+        assertEquals("pedro.nuevo@colegio.edu.co", actualizado.getCorreo());
+        verify(authRepoMock, times(1)).update(user);
+    }
+
+    @Test
+    @DisplayName("CP-PROF-003: Rechaza cambio de correo a uno ya registrado por otro usuario")
+    void update_rechazaCorreoDuplicadoDeOtroUsuario() {
+        User profesor = User.crear("Pedro", "pedro@colegio.edu.co", "h", Professor.ROL);
+        User otroUsuario = User.crear("Otro", "otro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(profesor.getId()))
+                .thenReturn(java.util.Optional.of(new Professor(profesor)));
+        when(authRepoMock.findByEmail("otro@colegio.edu.co"))
+                .thenReturn(java.util.Optional.of(otroUsuario));
+
+        AppException ex = assertThrows(AppException.class,
+                () -> service.update(profesor.getId(), "", "otro@colegio.edu.co"));
+
+        assertEquals("El correo ya está en uso por otro usuario.", ex.getMessage());
+        verify(authRepoMock, never()).update(any(User.class));
+    }
+
+    @Test
+    @DisplayName("CP-PROF-003: Permite mantener el mismo correo (no es duplicado consigo mismo)")
+    void update_permiteMismoCorreo() {
+        User user = User.crear("Pedro", "pedro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId())).thenReturn(java.util.Optional.of(new Professor(user)));
+
+        assertDoesNotThrow(() ->
+                service.update(user.getId(), "Pedro Nuevo", "pedro@colegio.edu.co"));
+    }
+
+    @Test
+    @DisplayName("CP-PROF-003: Rechaza correo no institucional")
+    void update_rechazaCorreoNoInstitucional() {
+        User user = User.crear("Pedro", "pedro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId())).thenReturn(java.util.Optional.of(new Professor(user)));
+
+        AppException ex = assertThrows(AppException.class,
+                () -> service.update(user.getId(), "", "pedro@gmail.com"));
+
+        assertEquals("El correo debe pertenecer al dominio @colegio.edu.co.", ex.getMessage());
+        verify(authRepoMock, never()).update(any(User.class));
+    }
+
+    @Test
+    @DisplayName("CP-PROF-003: Lanza error si el profesor no existe")
+    void update_lanzaErrorSiProfesorNoExiste() {
+        when(repoMock.findById("no-existe")).thenReturn(java.util.Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+                () -> service.update("no-existe", "Nuevo", ""));
+
+        assertEquals("Profesor no encontrado.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("CP-PROF-003: Si ambos campos están vacíos, no cambia nada pero persiste")
+    void update_camposVaciosConservanValoresActuales() {
+        User user = User.crear("Pedro", "pedro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId())).thenReturn(java.util.Optional.of(new Professor(user)));
+
+        Professor actualizado = service.update(user.getId(), "", "");
+
+        assertEquals("Pedro", actualizado.getNombre());
+        assertEquals("pedro@colegio.edu.co", actualizado.getCorreo());
+        verify(authRepoMock, times(1)).update(user);
     }
 }

@@ -26,7 +26,8 @@ public class ProfessorController {
             System.out.println("\n  ===== GESTIONAR PROFESORES =====");
             System.out.println("  1. Crear profesor");
             System.out.println("  2. Listar profesores");
-            System.out.println("  3. Volver");
+            System.out.println("  3. Editar profesor");
+            System.out.println("  4. Volver");
             System.out.print("  Seleccione una opción: ");
 
             String linea = scanner.nextLine().trim();
@@ -41,7 +42,8 @@ public class ProfessorController {
             switch (opcion) {
                 case 1 -> crearProfesor(scanner);
                 case 2 -> listarProfesores();
-                case 3 -> activo = false;
+                case 3 -> editarProfesor(scanner);
+                case 4 -> activo = false;
                 default -> System.out.println("  Opción inválida.");
             }
         }
@@ -87,6 +89,62 @@ public class ProfessorController {
             String estado = p.isActivo() ? "Activo" : "Inactivo";
             System.out.printf("  %d. %s | %s | %s%n",
                     i++, p.getNombre(), p.getCorreo(), estado);
+        }
+    }
+    // ISSUE-029 / CP-PROF-003: edita nombre y/o correo de un profesor existente.
+    private void editarProfesor(Scanner scanner) {
+        System.out.println("\n  ===== EDITAR PROFESOR =====");
+
+        List<Professor> profesores = service.listAllSorted();
+        if (profesores.isEmpty()) {
+            System.out.println("  No hay profesores registrados para editar.");
+            return;
+        }
+
+        // Mostrar lista numerada para que el admin elija
+        System.out.println("  Seleccione el profesor a editar:");
+        int i = 1;
+        for (Professor p : profesores) {
+            System.out.printf("  %d. %s | %s%n", i++, p.getNombre(), p.getCorreo());
+        }
+        System.out.println("  0. Cancelar");
+        System.out.print("  Opción: ");
+
+        int seleccion;
+        try {
+            seleccion = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("  Opción inválida.");
+            return;
+        }
+
+        if (seleccion == 0) {
+            System.out.println("  Edición cancelada.");
+            return;
+        }
+        if (seleccion < 1 || seleccion > profesores.size()) {
+            System.out.println("  Opción fuera de rango.");
+            return;
+        }
+
+        Professor objetivo = profesores.get(seleccion - 1);
+
+        System.out.println("\n  Dejando un campo vacío se conserva el valor actual.");
+        System.out.printf("  Nombre actual: %s%n", objetivo.getNombre());
+        System.out.print("  Nuevo nombre: ");
+        String nuevoNombre = scanner.nextLine().trim();
+
+        System.out.printf("  Correo actual: %s%n", objetivo.getCorreo());
+        System.out.print("  Nuevo correo (@colegio.edu.co): ");
+        String nuevoCorreo = scanner.nextLine().trim();
+
+        try {
+            Professor actualizado = service.update(objetivo.getId(), nuevoNombre, nuevoCorreo);
+            System.out.println("  Profesor actualizado correctamente.");
+            System.out.printf("    Nombre: %s%n", actualizado.getNombre());
+            System.out.printf("    Correo: %s%n", actualizado.getCorreo());
+        } catch (AppException e) {
+            System.out.println("  Error: " + e.getMessage());
         }
     }
 }

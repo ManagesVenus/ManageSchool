@@ -51,5 +51,9 @@ public class ProfessorRepository{
         return findByCorreo(correo).isPresent();
     }
 
+    // Exposición controlada del AuthRepository subyacente para operaciones de escritura
+    public org.manageSchool.auth.AuthRepository getAuthRepository() {
+        return this.authRepository;
+    }
 
 }
