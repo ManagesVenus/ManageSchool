@@ -13,7 +13,7 @@ public class StudentService {
         this.repo = repo;
     }
 
-    // Crea un nuevo estudiante. Valida correo institucional y que no exista duplicado.
+    // Crea un nuevo estudiante
     public Student create(String nombre, String correo) {
         if (!Validator.isNotEmpty(nombre)) {
             throw new AppException("El nombre no puede estar vacío.");
@@ -31,32 +31,52 @@ public class StudentService {
             throw new AppException("Ya existe un estudiante con ese correo.");
         }
 
-        Student student = Student.crear(nombre, correo);
+        int newId = repo.findAll().size() + 1;
+
+        Student student = new Student(
+                newId,
+                nombre,
+                correo,
+                true,
+                java.time.LocalDate.now().toString()
+        );
+
         repo.save(student);
         return student;
     }
 
-    // Devuelve todos los estudiantes registrados.
+    // Listar
     public List<Student> listAll() {
         return repo.findAll();
     }
 
-    // Busca un estudiante por su ID. Lanza AppException si no existe.
-    public Student findById(String id) {
+    // Buscar por ID
+    public Student findById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new AppException("Estudiante no encontrado."));
     }
 
-    // Busca un estudiante por nombre. Lanza AppException si no existe.
-    public Student findByNombre(String nombre) {
-        return repo.findByNombre(nombre)
-                .orElseThrow(() -> new AppException("Estudiante no encontrado."));
+    // Eliminar
+    public void deleteById(int id) {
+        Student student = findById(id);
+        repo.deleteById(id);
     }
 
-    // Desactiva un estudiante por ID (baja lógica).
-    public void deactivate(String id) {
+    // Editar
+    public void update(int id, String nombre, String correo) {
         Student student = findById(id);
-        student.setActivo(false);
+
+        if (!nombre.isEmpty()) {
+            student.setNombre(nombre);
+        }
+
+        if (!correo.isEmpty()) {
+            if (!Validator.isValidEmail(correo)) {
+                throw new AppException("Correo inválido.");
+            }
+            student.setCorreo(correo);
+        }
+
         repo.update(student);
     }
 }

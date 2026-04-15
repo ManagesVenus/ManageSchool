@@ -17,9 +17,9 @@ public class StudentRepository {
     }
 
     // Busca un estudiante por su ID
-    public Optional<Student> findById(String id) {
+    public Optional<Student> findById(int id) {
         return findAll().stream()
-                .filter(s -> s.getId().equals(id))
+                .filter(s -> s.getId() == id)
                 .findFirst();
     }
 
@@ -53,7 +53,7 @@ public class StudentRepository {
     public void update(Student student) {
         List<Student> students = findAll();
         for (int i = 0; i < students.size(); i++) {
-            if (students.get(i).getId().equals(student.getId())) {
+            if (students.get(i).getId() == student.getId()) {
                 students.set(i, student);
                 break;
             }
@@ -62,9 +62,9 @@ public class StudentRepository {
     }
 
     // Elimina un estudiante por id
-    public void deleteById(String id) {
+    public void deleteById(int id) {
         List<Student> students = findAll();
-        students.removeIf(s -> s.getId().equals(id));
+        students.removeIf(s -> s.getId() == id);
         JsonFileManager.writeAll(FILE, students);
     }
 }
