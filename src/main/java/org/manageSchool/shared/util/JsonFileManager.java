@@ -54,6 +54,10 @@ public class JsonFileManager {
     public static <T> void writeAll(String fileName, List<T> items) {
         File file = resolveFile(fileName);
 
+        if (items == null) {
+            items = new ArrayList<>();
+        }
+
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
             parentDir.mkdirs();
