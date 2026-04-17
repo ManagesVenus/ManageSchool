@@ -1,0 +1,13 @@
+[ {
+  "id" : "21cb4306-f549-4004-a54b-ff618565f354",
+  "nombre" : "luis",
+  "correo" : "luis@colegio.edu.co",
+  "activo" : true,
+  "fechaCreacion" : "2026-04-16"
+}, {
+  "id" : "47601586-eb43-4326-8130-bf842770843a",
+  "nombre" : "paco",
+  "correo" : "paco@colegio.edu.co",
+  "activo" : true,
+  "fechaCreacion" : "2026-04-16"
+} ]

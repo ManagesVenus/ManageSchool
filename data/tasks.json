@@ -12,4 +12,11 @@
   "fechaLimite" : "2025-03-01",
   "materiaId" : "MAT-101",
   "profesorId" : "PROF-001"
+}, {
+  "id" : "206f5581-c50b-426d-a8c8-f77f3cb5c72d",
+  "titulo" : "matematicas 1",
+  "descripcion" : null,
+  "fechaLimite" : "2026-05-31",
+  "materiaId" : "594f221a-799f-46cf-b76a-d77fd13ebf78",
+  "profesorId" : "carlos.arango@colegio.edu.co"
 } ]

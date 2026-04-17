@@ -6,4 +6,12 @@
   "valor" : 3.0,
   "fechaRegistro" : "2026-04-14",
   "profesorId" : "prof-001"
+}, {
+  "id" : "d0a03520-d69a-4ab0-be90-680bf8258391",
+  "estudianteId" : "1",
+  "tareaId" : "1",
+  "materiaId" : "1",
+  "valor" : 4.0,
+  "fechaRegistro" : "2026-04-16",
+  "profesorId" : "carlos.arango@colegio.edu.co"
 } ]

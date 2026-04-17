@@ -44,10 +44,11 @@ public class MenuHelper {
         imprimirSeparador();
         System.out.println("  MENÚ PROFESOR");
         imprimirSeparador();
-        System.out.println("  1. Gestionar Estudiantes");
-        System.out.println("  2. Gestionar Tareas");
-        System.out.println("  3. Gestionar Notas");
-        System.out.println("  4. Cerrar sesión");
+        System.out.println("  1. Gestionar Tareas");
+        System.out.println("  2. Gestionar Notas");
+        System.out.println("  3. Ver notas por tarea");
+        System.out.println("  4. Ver promedios de estudiante");
+        System.out.println("  5. Cerrar sesión");
         imprimirSeparador();
     }
 
