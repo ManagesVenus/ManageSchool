@@ -1,5 +1,10 @@
 package org.manageSchool.professor;
 
+
+import org.manageSchool.task.TaskRepository;
+import org.manageSchool.task.Task;
+import org.manageSchool.grade.GradeRepository;
+import org.manageSchool.grade.Grade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,14 +26,18 @@ public class ProfessorServiceTest {
     private ProfessorRepository repoMock;
     private AuthService authServiceMock;
     private ProfessorService service;
+    private TaskRepository taskRepoMock;
+    private GradeRepository gradeRepoMock;
 
     @BeforeEach
     void setUp() {
         repoMock = mock(ProfessorRepository.class);
         authServiceMock = mock(AuthService.class);
         authRepoMock = mock(AuthRepository.class);
+        taskRepoMock = mock(TaskRepository.class);
+        gradeRepoMock = mock(GradeRepository.class);
         when(repoMock.getAuthRepository()).thenReturn(authRepoMock);
-        service = new ProfessorService(repoMock, authServiceMock);
+        service = new ProfessorService(repoMock, authServiceMock, taskRepoMock, gradeRepoMock);
     }
 
     // ISSUE-027 / CP-PROF-001: crear profesor
@@ -239,5 +248,95 @@ public class ProfessorServiceTest {
         assertEquals("Pedro", actualizado.getNombre());
         assertEquals("pedro@colegio.edu.co", actualizado.getCorreo());
         verify(authRepoMock, times(1)).update(user);
+    }
+
+    // ===== ISSUE-030 / CP-PROF-004: Eliminar profesor =====
+
+    @Test
+    @DisplayName("CP-PROF-004: getDeletionInfo retorna conteo de tareas y notas")
+    void getDeletionInfo_retornaConteoCorrectoDeTareasYNotas() {
+        User user = User.crear("Laura", "laura@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId()))
+                .thenReturn(java.util.Optional.of(new Professor(user)));
+
+        Task t1 = Task.create("Tarea 1", "desc", null, "m1", user.getId());
+        Task t2 = Task.create("Tarea 2", "desc", null, "m1", user.getId());
+        when(taskRepoMock.findByProfessorId(user.getId())).thenReturn(List.of(t1, t2));
+
+        Grade g1 = new Grade("g1", "est1", t1.getId(), "m1", 4.0, "2026-04-01", user.getId());
+        Grade g2 = new Grade("g2", "est2", t1.getId(), "m1", 3.5, "2026-04-01", user.getId());
+        Grade g3 = new Grade("g3", "est1", t2.getId(), "m1", 5.0, "2026-04-01", user.getId());
+        when(gradeRepoMock.findByTaskId(t1.getId())).thenReturn(List.of(g1, g2));
+        when(gradeRepoMock.findByTaskId(t2.getId())).thenReturn(List.of(g3));
+
+        int[] info = service.getDeletionInfo(user.getId());
+
+        assertEquals(2, info[0], "Debe reportar 2 tareas");
+        assertEquals(3, info[1], "Debe reportar 3 notas");
+    }
+
+    @Test
+    @DisplayName("CP-PROF-004: getDeletionInfo retorna [0,0] si no tiene tareas")
+    void getDeletionInfo_retornaCerosSiNoHayTareas() {
+        User user = User.crear("Pedro", "pedro@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId()))
+                .thenReturn(java.util.Optional.of(new Professor(user)));
+        when(taskRepoMock.findByProfessorId(user.getId())).thenReturn(List.of());
+
+        int[] info = service.getDeletionInfo(user.getId());
+
+        assertEquals(0, info[0]);
+        assertEquals(0, info[1]);
+    }
+
+    @Test
+    @DisplayName("CP-PROF-004: delete elimina al profesor de users.json")
+    void delete_eliminaProfesorDelSistema() {
+        User user = User.crear("Laura", "laura@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId()))
+                .thenReturn(java.util.Optional.of(new Professor(user)));
+
+        service.delete(user.getId());
+
+        verify(authRepoMock, times(1)).deleteById(user.getId());
+    }
+
+    @Test
+    @DisplayName("CP-PROF-004: delete lanza error si el profesor no existe")
+    void delete_lanzaErrorSiProfesorNoExiste() {
+        when(repoMock.findById("no-existe")).thenReturn(java.util.Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+                () -> service.delete("no-existe"));
+
+        assertEquals("Profesor no encontrado.", ex.getMessage());
+    }
+
+    // ===== ISSUE-030 / CP-PROF-005: Tareas y notas huérfanas =====
+
+    @Test
+    @DisplayName("CP-PROF-005: delete NO elimina tareas del profesor (quedan huérfanas)")
+    void delete_noEliminaTareasDelProfesor() {
+        User user = User.crear("Laura", "laura@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId()))
+                .thenReturn(java.util.Optional.of(new Professor(user)));
+
+        service.delete(user.getId());
+
+        // Verificar que NUNCA se llamó a eliminar tareas
+        verify(taskRepoMock, never()).deleteById(anyString());
+    }
+
+    @Test
+    @DisplayName("CP-PROF-005: delete NO elimina notas asociadas a tareas del profesor")
+    void delete_noEliminaNotasDelProfesor() {
+        User user = User.crear("Laura", "laura@colegio.edu.co", "h", Professor.ROL);
+        when(repoMock.findById(user.getId()))
+                .thenReturn(java.util.Optional.of(new Professor(user)));
+
+        service.delete(user.getId());
+
+        // Verificar que NUNCA se llamó a eliminar notas
+        verify(gradeRepoMock, never()).deleteById(anyString());
     }
 }

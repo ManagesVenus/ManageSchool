@@ -15,7 +15,9 @@ public class ProfessorController {
         AuthRepository authRepo = new AuthRepository();
         AuthService authService = new AuthService(authRepo);
         ProfessorRepository repo = new ProfessorRepository(authRepo);
-        this.service = new ProfessorService(repo, authService);
+        this.service = new ProfessorService(repo, authService,
+                new org.manageSchool.task.TaskRepository(),
+                new org.manageSchool.grade.GradeRepository());
     }
 
     // submenu de gestión de profesores (rol ADMIN)
@@ -27,7 +29,8 @@ public class ProfessorController {
             System.out.println("  1. Crear profesor");
             System.out.println("  2. Listar profesores");
             System.out.println("  3. Editar profesor");
-            System.out.println("  4. Volver");
+            System.out.println("  4. Eliminar profesor");
+            System.out.println("  5. Volver");
             System.out.print("  Seleccione una opción: ");
 
             String linea = scanner.nextLine().trim();
@@ -43,7 +46,8 @@ public class ProfessorController {
                 case 1 -> crearProfesor(scanner);
                 case 2 -> listarProfesores();
                 case 3 -> editarProfesor(scanner);
-                case 4 -> activo = false;
+                case 4 -> eliminarProfesor(scanner);
+                case 5 -> activo = false;
                 default -> System.out.println("  Opción inválida.");
             }
         }
@@ -143,6 +147,76 @@ public class ProfessorController {
             System.out.println("  Profesor actualizado correctamente.");
             System.out.printf("    Nombre: %s%n", actualizado.getNombre());
             System.out.printf("    Correo: %s%n", actualizado.getCorreo());
+        } catch (AppException e) {
+            System.out.println("  Error: " + e.getMessage());
+        }
+    }
+    // ISSUE-030 / CP-PROF-004, CP-PROF-005: elimina un profesor con confirmación.
+    private void eliminarProfesor(Scanner scanner) {
+        System.out.println("\n  ===== ELIMINAR PROFESOR =====");
+
+        List<Professor> profesores = service.listAllSorted();
+        if (profesores.isEmpty()) {
+            System.out.println("  No hay profesores registrados para eliminar.");
+            return;
+        }
+
+        // Mostrar lista numerada
+        System.out.println("  Seleccione el profesor a eliminar:");
+        int i = 1;
+        for (Professor p : profesores) {
+            System.out.printf("  %d. %s | %s%n", i++, p.getNombre(), p.getCorreo());
+        }
+        System.out.println("  0. Cancelar");
+        System.out.print("  Opción: ");
+
+        int seleccion;
+        try {
+            seleccion = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("  Opción inválida.");
+            return;
+        }
+
+        if (seleccion == 0) {
+            System.out.println("  Eliminación cancelada.");
+            return;
+        }
+        if (seleccion < 1 || seleccion > profesores.size()) {
+            System.out.println("  Opción fuera de rango.");
+            return;
+        }
+
+        Professor objetivo = profesores.get(seleccion - 1);
+
+        try {
+            // Obtener info de tareas y notas asociadas
+            int[] info = service.getDeletionInfo(objetivo.getId());
+            int tareas = info[0];
+            int notas  = info[1];
+
+            // CP-PROF-004: aviso si tiene tareas asociadas
+            if (tareas > 0) {
+                System.out.printf(
+                        "  Este profesor tiene %d tarea(s) y %d nota(s) asociadas.%n",
+                        tareas, notas);
+                System.out.println("  Al eliminarlo, quedarán huérfanas. ¿Desea continuar?");
+            } else {
+                System.out.printf("  ¿Está seguro de eliminar a %s?%n", objetivo.getNombre());
+            }
+
+            System.out.print("  Escriba 'SI' para confirmar: ");
+            String confirmacion = scanner.nextLine().trim();
+
+            if (!confirmacion.equalsIgnoreCase("SI")) {
+                System.out.println("  Eliminación cancelada.");
+                return;
+            }
+
+            // Eliminar (tareas y notas se conservan intactas - RN-10)
+            service.delete(objetivo.getId());
+            System.out.println("  Profesor eliminado correctamente.");
+
         } catch (AppException e) {
             System.out.println("  Error: " + e.getMessage());
         }
