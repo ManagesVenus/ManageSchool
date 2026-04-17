@@ -1,5 +1,10 @@
 package org.manageSchool.professor;
 
+import org.manageSchool.task.TaskRepository;
+import org.manageSchool.task.Task;
+import org.manageSchool.grade.GradeRepository;
+import org.manageSchool.grade.Grade;
+import org.manageSchool.shared.AppException;
 import org.manageSchool.auth.AuthService;
 import org.manageSchool.auth.CreateUserRequest;
 import org.manageSchool.auth.User;
@@ -18,10 +23,21 @@ public class ProfessorService {
 
     private final ProfessorRepository repo;
     private final AuthService authService;
+    private final TaskRepository taskRepo;
+    private final GradeRepository gradeRepo;
 
-    public ProfessorService(ProfessorRepository repo, AuthService authService) {
+    // Constructor completo (ISSUE-030 requiere acceso a tareas y notas)
+    public ProfessorService(ProfessorRepository repo, AuthService authService,
+                            TaskRepository taskRepo, GradeRepository gradeRepo) {
         this.repo = repo;
         this.authService = authService;
+        this.taskRepo = taskRepo;
+        this.gradeRepo = gradeRepo;
+    }
+
+    // Constructor retrocompatible (para código que no necesita delete)
+    public ProfessorService(ProfessorRepository repo, AuthService authService) {
+        this(repo, authService, new TaskRepository(), new GradeRepository());
     }
 
     /**
@@ -110,5 +126,39 @@ public class ProfessorService {
     // Helper para obtener el AuthRepository desde el ProfessorRepository
     private org.manageSchool.auth.AuthRepository authRepository() {
         return repo.getAuthRepository();
+    }
+
+    /**
+     * Cuenta tareas y notas asociadas a un profesor antes de eliminar.
+     * Retorna un array: [cantidadTareas, cantidadNotas]
+     */
+    public int[] getDeletionInfo(String profesorId) {
+        Professor profesor = repo.findById(profesorId)
+                .orElseThrow(() -> new AppException("Profesor no encontrado."));
+
+        List<Task> tareas = taskRepo.findByProfessorId(profesor.getId());
+        int totalNotas = 0;
+        for (Task t : tareas) {
+            totalNotas += gradeRepo.findByTaskId(t.getId()).size();
+        }
+
+        return new int[]{ tareas.size(), totalNotas };
+    }
+
+    /**
+     * Elimina un profesor del sistema (de users.json).
+     *
+     * Las tareas y notas asociadas permanecen intactas (RN-10):
+     * sus campos profesorId quedan apuntando a un usuario inexistente.
+     * No se hace eliminación en cascada.
+     *
+     * @param id ID del profesor a eliminar
+     */
+    public void delete(String id) {
+        Professor profesor = repo.findById(id)
+                .orElseThrow(() -> new AppException("Profesor no encontrado."));
+
+        // Eliminar el User subyacente de users.json
+        authRepository().deleteById(profesor.getId());
     }
 }

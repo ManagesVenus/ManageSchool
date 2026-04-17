@@ -15,7 +15,9 @@ public class ProfessorController {
         AuthRepository authRepo = new AuthRepository();
         AuthService authService = new AuthService(authRepo);
         ProfessorRepository repo = new ProfessorRepository(authRepo);
-        this.service = new ProfessorService(repo, authService);
+        this.service = new ProfessorService(repo, authService,
+                new org.manageSchool.task.TaskRepository(),
+                new org.manageSchool.grade.GradeRepository());
     }
 
     // submenu de gestión de profesores (rol ADMIN)
