@@ -7,6 +7,7 @@ import org.manageSchool.subject.Subject;
 import org.manageSchool.subject.SubjectRepository;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.UUID;
@@ -118,6 +119,64 @@ public class RankingService {  // Lógica de negocio para el ranking trimestral
 
         promedios.sort((a, b) -> Double.compare(b.getPromedio(), a.getPromedio()));  // Orden descendente
         return promedios;
+    }
+
+    // ── CP-RANK-002 / CP-RANK-002b: Consultar ranking actual ─────────────────
+
+    /**
+     * Resultado del ranking automático para el administrador.
+     * Incluye la lista ordenada, el período consultado y un aviso opcional.
+     */
+    public static class ResultadoRanking {  // Contiene los datos del ranking a mostrar
+        public final List<StudentTrimesterAverage> promedios;  // Lista ordenada de mayor a menor
+        public final Period periodo;                           // Período al que pertenece el ranking
+        public final String aviso;                             // Aviso opcional (puede ser null)
+
+        public ResultadoRanking(List<StudentTrimesterAverage> promedios, Period periodo, String aviso) {
+            this.promedios = promedios;
+            this.periodo   = periodo;
+            this.aviso     = aviso;
+        }
+    }
+
+    /**
+     * CP-RANK-002 / CP-RANK-002b: Determina qué ranking mostrar al administrador.
+     *
+     * - Si hay un trimestre cerrado con datos: lo muestra.
+     * - Si el trimestre actual está en curso y hay uno cerrado anterior: muestra el anterior con aviso.
+     * - Si nunca hubo un trimestre cerrado: lanza excepción con el mensaje especial.
+     */
+    public ResultadoRanking consultarRankingActual() {  // Decide qué ranking mostrar automáticamente
+        List<Period> todos = rankingRepo.findAllPeriods();
+
+        // Períodos cerrados con promedios registrados
+        List<Period> cerrados = todos.stream()
+                .filter(Period::isCerrado)
+                .filter(p -> !rankingRepo.findAveragesByPeriod(p.getId()).isEmpty())
+                .collect(Collectors.toList());
+
+        if (cerrados.isEmpty()) {  // CP-RANK-002b: nunca ha cerrado un trimestre con datos
+            throw new RuntimeException(
+                    "Aun no hay trimestres cerrados con datos suficientes para generar el ranking");
+        }
+
+        // ¿Existe un trimestre actualmente abierto?
+        boolean hayTrimestreEnCurso = todos.stream().anyMatch(p -> !p.isCerrado());
+
+        // Último período cerrado con datos (el de número más alto)
+        Period ultimoCerrado = cerrados.stream()
+                .max(Comparator.comparingInt(Period::getNumero))
+                .orElseThrow();
+
+        List<StudentTrimesterAverage> promedios = rankingRepo.findAveragesByPeriod(ultimoCerrado.getId());
+        promedios.sort((a, b) -> Double.compare(b.getPromedio(), a.getPromedio()));
+
+        // CP-RANK-002b: trimestre en curso → mostrar último cerrado con aviso
+        String aviso = hayTrimestreEnCurso
+                ? "Mostrando ranking del trimestre anterior. El trimestre actual aun esta en curso."
+                : null;
+
+        return new ResultadoRanking(promedios, ultimoCerrado, aviso);
     }
 
     // ── Listar períodos ───────────────────────────────────────────────────────
