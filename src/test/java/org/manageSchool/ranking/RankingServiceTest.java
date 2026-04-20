@@ -264,4 +264,169 @@ class RankingServiceTest {  // Tests para RankingService — cubre CP-RANK-001 y
 
         assertEquals(2, rankingService.listarPeriodos().size());  // Deben haber 2 periodos
     }
+
+    // ── consultarRankingActual — CP-RANK-002 ──────────────────────────────────
+
+    @Test  // CP-RANK-002: Trimestre cerrado — muestra ranking con promedios ordenados
+    void consultarRankingActual_muestraRankingDeTrimestreCerrado() {
+        List<Student> estudiantes = crearEstudiantes("Ana", "Luis", "Maria", "Juan");
+        JsonFileManager.writeAll("students.json", estudiantes);
+
+        registrarNota("1", "task-001", "mat-001", 4.8);  // Ana
+        registrarNota("2", "task-002", "mat-001", 4.5);  // Luis
+        registrarNota("3", "task-003", "mat-001", 4.2);  // Maria
+        registrarNota("4", "task-004", "mat-001", 3.9);  // Juan
+
+        Period period = rankingService.crearPeriodo("2025-01-01");
+        rankingService.cerrarTrimestre(period.getId());
+
+        RankingService.ResultadoRanking resultado = rankingService.consultarRankingActual();
+
+        assertEquals(4.80, resultado.promedios.get(0).getPromedio(), 0.01);  // Ana primera
+        assertEquals(4.50, resultado.promedios.get(1).getPromedio(), 0.01);  // Luis segundo
+        assertEquals(4.20, resultado.promedios.get(2).getPromedio(), 0.01);  // Maria tercera
+        assertEquals(period.getId(), resultado.periodo.getId());             // Periodo correcto
+        assertNull(resultado.aviso);  // Sin aviso porque no hay trimestre en curso
+    }
+
+    @Test  // CP-RANK-002: Sin trimestres cerrados — lanza mensaje especial
+    void consultarRankingActual_lanzaMensajeEspecialSinTrimestres() {
+        Exception ex = assertThrows(RuntimeException.class, () -> {
+            rankingService.consultarRankingActual();
+        });
+        assertEquals(
+                "Aun no hay trimestres cerrados con datos suficientes para generar el ranking",
+                ex.getMessage()
+        );
+    }
+
+    @Test  // CP-RANK-002: Periodo creado pero nunca cerrado — igual lanza mensaje especial
+    void consultarRankingActual_lanzaMensajeEspecialSiPeriodoAbierto() {
+        rankingService.crearPeriodo("2025-01-01");  // Creado pero no cerrado
+
+        Exception ex = assertThrows(RuntimeException.class, () -> {
+            rankingService.consultarRankingActual();
+        });
+        assertEquals(
+                "Aun no hay trimestres cerrados con datos suficientes para generar el ranking",
+                ex.getMessage()
+        );
+    }
+
+    // ── consultarRankingActual — CP-RANK-002b ─────────────────────────────────
+
+    @Test  // CP-RANK-002b: Trimestre en curso — muestra ultimo cerrado con aviso
+    void consultarRankingActual_muestraUltimoCerradoConAvisoCuandoHayTrimestreEnCurso() {
+        registrarNota("1", "task-001", "mat-001", 4.5);
+
+        // Trimestre 1: cerrado con datos
+        Period t1 = rankingService.crearPeriodo("2025-01-01");
+        rankingService.cerrarTrimestre(t1.getId());
+
+        // Trimestre 2: abierto (en curso)
+        rankingService.crearPeriodo("2025-04-01");
+
+        RankingService.ResultadoRanking resultado = rankingService.consultarRankingActual();
+
+        assertEquals(t1.getId(), resultado.periodo.getId());  // Debe mostrar el trimestre 1
+        assertNotNull(resultado.aviso);                        // Debe incluir aviso
+        assertTrue(resultado.aviso.contains("trimestre anterior"));
+        assertTrue(resultado.aviso.contains("en curso"));
+    }
+
+    @Test  // CP-RANK-002b: Solo hay un trimestre abierto y nunca cerrado — mensaje especial
+    void consultarRankingActual_lanzaMensajeEspecialSiSoloHayTrimestreAbierto() {
+        rankingService.crearPeriodo("2025-01-01");  // Solo existe uno abierto, nunca cerrado
+
+        Exception ex = assertThrows(RuntimeException.class, () -> {
+            rankingService.consultarRankingActual();
+        });
+        assertEquals(
+                "Aun no hay trimestres cerrados con datos suficientes para generar el ranking",
+                ex.getMessage()
+        );
+    }
+
+    @Test  // CP-RANK-002b: Muestra el ultimo trimestre cerrado (no el primero) cuando hay varios
+    void consultarRankingActual_muestraElUltimoCerradoCuandoHayVarios() {
+        registrarNota("1", "task-001", "mat-001", 3.0);
+        Period t1 = rankingService.crearPeriodo("2025-01-01");
+        rankingService.cerrarTrimestre(t1.getId());
+
+        // Limpiar notas y agregar nuevas para trimestre 2
+        JsonFileManager.writeAll("grades.json", new ArrayList<>());
+        registrarNota("1", "task-002", "mat-001", 5.0);
+        Period t2 = rankingService.crearPeriodo("2025-04-01");
+        rankingService.cerrarTrimestre(t2.getId());
+
+        // Trimestre 3 en curso
+        rankingService.crearPeriodo("2025-07-01");
+
+        RankingService.ResultadoRanking resultado = rankingService.consultarRankingActual();
+
+        assertEquals(t2.getId(), resultado.periodo.getId());  // Debe mostrar T2, no T1
+        assertEquals(2, resultado.periodo.getNumero());
+    }
+
+    // ── Helpers adicionales ───────────────────────────────────────────────────
+
+    private List<Student> crearEstudiantes(String... nombres) {  // Crea lista de estudiantes con IDs secuenciales
+        List<Student> lista = new ArrayList<>();
+        for (int i = 0; i < nombres.length; i++) {
+            Student s = new Student();
+            s.setId(String.valueOf(i + 1));
+            s.setNombre(nombres[i]);
+            s.setActivo(true);
+            lista.add(s);
+        }
+        return lista;
+    }
+
+    private void registrarNota(String estudianteId, String tareaId, String materiaId, double valor) {  // Registra una nota directamente
+        gradeService.create(estudianteId, tareaId, materiaId, valor, "prof-001");
+    }
+
+    // ── obtenerRanking — CP-RANK-003 ──────────────────────────────────────────────
+
+    @Test  // CP-RANK-003: Empate en tercer lugar — María y Juan deben aparecer ambos en posición 3
+    void obtenerRanking_empateEnTercerLugar() {
+        List<Student> estudiantes = crearEstudiantes("Ana", "Luis", "Maria", "Juan");
+        JsonFileManager.writeAll("students.json", estudiantes);
+
+        registrarNota("1", "task-001", "mat-001", 4.8);  // Ana
+        registrarNota("2", "task-002", "mat-001", 4.5);  // Luis
+        registrarNota("3", "task-003", "mat-001", 4.3);  // Maria
+        registrarNota("4", "task-004", "mat-001", 4.3);  // Juan — empata con Maria
+
+        Period period = rankingService.crearPeriodo("2025-01-01");
+        rankingService.cerrarTrimestre(period.getId());
+
+        List<StudentTrimesterAverage> ranking = rankingService.obtenerRanking(period.getId());
+
+        assertEquals(4, ranking.size());                              // Los 4 deben aparecer
+        assertEquals(4.80, ranking.get(0).getPromedio(), 0.01);      // Ana: 1er lugar
+        assertEquals(4.50, ranking.get(1).getPromedio(), 0.01);      // Luis: 2do lugar
+        assertEquals(4.30, ranking.get(2).getPromedio(), 0.01);      // Maria: 3er lugar (empate)
+        assertEquals(4.30, ranking.get(3).getPromedio(), 0.01);      // Juan: 3er lugar (empate)
+    }
+
+    @Test  // CP-RANK-003: Empate en primer lugar — Ana y Luis en posición 1, María en posición 2
+    void obtenerRanking_empateEnPrimerLugar() {
+        List<Student> estudiantes = crearEstudiantes("Ana", "Luis", "Maria");
+        JsonFileManager.writeAll("students.json", estudiantes);
+
+        registrarNota("1", "task-001", "mat-001", 4.8);  // Ana
+        registrarNota("2", "task-002", "mat-001", 4.8);  // Luis — empata con Ana
+        registrarNota("3", "task-003", "mat-001", 4.5);  // Maria
+
+        Period period = rankingService.crearPeriodo("2025-01-01");
+        rankingService.cerrarTrimestre(period.getId());
+
+        List<StudentTrimesterAverage> ranking = rankingService.obtenerRanking(period.getId());
+
+        assertEquals(3, ranking.size());                          // Los 3 deben aparecer
+        assertEquals(4.80, ranking.get(0).getPromedio(), 0.01);  // Ana: 1er lugar (empate)
+        assertEquals(4.80, ranking.get(1).getPromedio(), 0.01);  // Luis: 1er lugar (empate)
+        assertEquals(4.50, ranking.get(2).getPromedio(), 0.01);  // Maria: 3er lugar (no 2do)
+    }
 }

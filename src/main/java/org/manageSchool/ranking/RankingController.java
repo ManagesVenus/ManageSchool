@@ -112,14 +112,23 @@ public class RankingController {  // Controlador de consola para el ranking trim
         System.out.printf("  %-10s %-20s %-10s%n", "Posición", "Estudiante", "Promedio");
         System.out.println("  " + "─".repeat(42));
 
-        int posicion = 1;
+        int posicion    = 1;
         double promedioAnterior = -1;
         int posicionReal = 1;
 
+        // Determinar el promedio que ocupa el 3er lugar (puede haber empate)
+        double umbral3erLugar = promedios.size() >= 3 ? promedios.get(2).getPromedio() : Double.MIN_VALUE;
+
         for (StudentTrimesterAverage avg : promedios) {  // Recorre cada promedio
-            // Empate: mantiene la misma posición
+
+            // Actualizar posición real solo si el promedio cambió
             if (avg.getPromedio() != promedioAnterior) {
                 posicionReal = posicion;
+            }
+
+            // Cortar después del 3er lugar, pero incluir todos los empatados en ese lugar
+            if (posicionReal > 3 && avg.getPromedio() < umbral3erLugar) {
+                break;  // Ya pasamos el 3er lugar y este no empata — detener
             }
 
             // Resolver nombre del estudiante desde StudentRepository
